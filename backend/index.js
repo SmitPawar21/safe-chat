@@ -1,0 +1,38 @@
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+
+import UserRouter from "./router/UserRouter.js";
+import AuthRouter from "./router/AuthRouter.js";
+import MessageRouter from "./router/MessageRouter.js";
+
+dotenv.config();
+
+const app = express();
+
+const PORT = process.env.PORT;
+
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+}));
+
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log("Database Connected"));
+
+app.use("/", AuthRouter);
+app.use("/", UserRouter);
+app.use("/message", MessageRouter);
+
+app.get("/", (req, res) => {
+    console.log("/");
+    res.status(201).json({"message": "hello"});
+})
+
+app.listen(PORT, () => {
+    console.log(`Backend running on http://localhost:${PORT}`);
+})
