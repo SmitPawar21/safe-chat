@@ -48,7 +48,7 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
-            set({isSigningUp: false});
+            set({isSigningUp: false});    
         }
     },
 
@@ -91,7 +91,6 @@ export const useAuthStore = create((set, get) => ({
     connectSocket: () => {
         const {authUser, socket} = get();
 
-        // do not connect if user is null or socket is already connected
         if(!authUser || (socket && socket.connected)) {
             console.log("Socket connection skipped:", { 
                 hasUser: !!authUser, 

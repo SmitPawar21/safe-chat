@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useChatStore } from '../store/useChatStore';
 import { useAuthStore } from '../store/useAuthStore';
+import {CircleUser} from 'lucide-react';
 
 const Sidebar = () => {
 
@@ -42,15 +43,11 @@ const Sidebar = () => {
 
             <div className="space-y-3">
                 {filteredUsers.map(user => (
-                    <div key={user._id} className={`flex items-center rounded-md p-2 shadow cursor-pointer ${userSelectedId===user._id ? 'bg-blue-500' : 'bg-[#1F2937]'} `} onClick={() => handleSelectUser(user._id)}>
-                        <img
-                            src={user.profilePhoto}
-                            alt={user.username}
-                            className="w-10 h-10 rounded-full mr-3"
-                        />
+                    <div key={user._id} className={`flex items-center gap-[10px] rounded-md p-2 shadow cursor-pointer ${userSelectedId===user._id ? 'bg-blue-900' : 'bg-[#1F2937]'} `} onClick={() => handleSelectUser(user._id)}>
+                        <CircleUser />
                         <div className="flex-1">
                             <p className="font-medium text-white">{user.username}</p>
-                            <p className={`text-sm ${onlineUsers.includes(user._id) ? 'text-green-600' : 'text-gray-500'}`}>
+                            <p className={`text-sm ${onlineUsers.includes(user._id) ? 'text-green-500' : 'text-gray-500'}`}>
                                 {onlineUsers.includes(user._id) ? 'Online' : 'Offline'}
                             </p>
                         </div>  
