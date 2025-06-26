@@ -10,8 +10,6 @@ const MessageWindow = () => {
   const [messages, setMessages] = useState([]);
   const [sendMessageValue, setSendMessageValue] = useState("");
 
-  console.log("messagewindow me auth user: ", authUser);
-
   useEffect(() => {
     const fetchDetails = async () => {
       const result = await selectedUserData(userSelectedId);
@@ -19,7 +17,6 @@ const MessageWindow = () => {
       setMessages(result);
     }
     fetchDetails();
-
   }, [userSelectedId]);
 
   const formatTime = (timestamp) => {
@@ -59,20 +56,34 @@ const MessageWindow = () => {
     await sendMessage(userSelectedId, sendMessageValue, "");
     setSendMessageValue("");
 
-    const updatedMessages = await selectedUserData(userSelectedId); // fetch again
+    const updatedMessages = await selectedUserData(userSelectedId);
     setMessages(updatedMessages);
   }
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      const container = messagesEndRef.current.parentElement;
+      container.scrollTop = container.scrollHeight;
+    }
   };
 
   useEffect(() => {
-  scrollToBottom();
-}, [messages]);
+    // Add a small delay to ensure DOM is updated
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [messages]);
 
   return (
-    <div className='bg-slate-700 w-[65%] h-[100%] flex flex-col h-screen'>
+    <div className='bg-slate-700 w-[65%] h-full flex flex-col'>
+
+      <div className="bg-black px-4 py-3 w-full">
+        <div className="flex items-center space-x-3">
+          <h1>You Are Talking With {}</h1>
+        </div>
+      </div>
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
@@ -109,6 +120,8 @@ const MessageWindow = () => {
             </div>
           );
         })}
+        
+        {/* Scroll anchor - moved inside the scrollable container */}
         <div ref={messagesEndRef} />
       </div>
 
@@ -121,6 +134,7 @@ const MessageWindow = () => {
             className="flex-1 px-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={sendMessageValue}
             onChange={handleInput}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(e)}
           />
           <button className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors duration-200" onClick={handleSendMessage}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
