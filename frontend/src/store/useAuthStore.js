@@ -1,12 +1,18 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast, { Toaster } from 'react-hot-toast';
+import {io} from "socket.io-client";
 
-export const useAuthStore = create((set) => ({
+const BACKEND_URL = "http://localhost:3000"
+
+export const useAuthStore = create((set, get) => ({
     authUser: null,
     isSigningUp: false,
     isLoggingIng: false,
     isUpdatingProfile: false,
+
+    socket: null,
+    isInitialized: false,
 
     isCheckingAuth: true,
 
@@ -14,9 +20,19 @@ export const useAuthStore = create((set) => ({
         try {
             const res = await axiosInstance.get("/auth/check");
             console.log("check data", res);
-            set({ authUser: res.data })
+            
+            // Only connect socket if user wasn't already authenticated
+            const wasAuthenticated = get().authUser !== null;
+            set({ authUser: res.data.id });
+
+            // Only connect if we weren't previously authenticated
+            if (!wasAuthenticated) {
+                get().connectSocket();
+            }
         } catch (err) {
             set({ authUser: null });
+            // Disconnect socket if auth check fails
+            get().disconnectSocket();
         } finally {
             set({ isCheckingAuth: false });
         }
@@ -39,8 +55,9 @@ export const useAuthStore = create((set) => ({
         try {
             const res = await axiosInstance.post("/login", data);
             console.log("useAuthStore me response:", res);
-            // set({ authUser: res.data });
+            set({ authUser: res.data.id });
             toast.success("Successfull Logged In");
+            get().connectSocket();
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
@@ -51,8 +68,10 @@ export const useAuthStore = create((set) => ({
     logout: async() => {
         try {
             const res = await axiosInstance.get("/logout");
+            set({authUser: null});
             toast.success("Logged Out Successfully");
             console.log(res);
+            get().disconnectSocket();
         } catch (err) {
             toast.error(err.response.data.message);
         }
@@ -65,6 +84,37 @@ export const useAuthStore = create((set) => ({
         } catch (err) {
             toast.error(err.response.data.message);
         }
-    }
+    },
 
-}))
+    connectSocket: () => {
+        const {authUser, socket} = get();
+
+        // Enhanced check: don't connect if user is null or socket is already connected
+        if(!authUser || (socket && socket.connected)) {
+            console.log("Socket connection skipped:", { 
+                hasUser: !!authUser, 
+                socketConnected: socket?.connected 
+            });
+            return;
+        }
+
+        const newSocket = io(BACKEND_URL, {
+            // Add these options to prevent multiple connections
+            forceNew: false,
+            reconnection: true,
+            timeout: 5000,
+        });
+        
+        console.log("connectSocket done for user:", authUser);
+        set({socket: newSocket});
+    },
+
+    disconnectSocket: () => {
+        const {socket} = get();
+        if(socket && socket.connected) {
+            socket.disconnect();
+            console.log("socket disconnected");
+            set({socket: null});
+        }
+    }
+}));

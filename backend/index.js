@@ -8,9 +8,9 @@ import UserRouter from "./router/UserRouter.js";
 import AuthRouter from "./router/AuthRouter.js";
 import MessageRouter from "./router/MessageRouter.js";
 
-dotenv.config();
+import {app, server} from "./lib/socket.js";
 
-const app = express();
+dotenv.config();
 
 const PORT = process.env.PORT;
 
@@ -33,6 +33,6 @@ app.get("/", (req, res) => {
     res.status(201).json({"message": "hello"});
 })
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
 })

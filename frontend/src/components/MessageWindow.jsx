@@ -94,7 +94,7 @@ const MessageWindow = () => {
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
         {messages.map((msg, index) => {
-          var isOwnMessage = msg.senderId === authUser?.id;
+          var isOwnMessage = msg.senderId === authUser;
           console.log("ownmessage hai kya re", isOwnMessage)
           const showDate = index === 0 ||
             formatDate(messages[index - 1].createdAt) !== formatDate(msg.createdAt);
@@ -127,7 +127,6 @@ const MessageWindow = () => {
           );
         })}
         
-        {/* Scroll anchor - moved inside the scrollable container */}
         <div ref={messagesEndRef} />
       </div>
 

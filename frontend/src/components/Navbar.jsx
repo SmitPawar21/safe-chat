@@ -10,7 +10,7 @@ const Navbar = () => {
 
     const handleProfile = async () => {
         setIsProfileModalOpen(true);
-        const user = await getUserDataById(authUser.id);
+        const user = await getUserDataById(authUser);
         console.log(user);
         setUserData({
             username: user.username,
@@ -38,7 +38,7 @@ const Navbar = () => {
                     Logout
                 </li>}
                 {
-                    isProfileModalOpen && <div className="absolute top-[10vh] p-4 w-[200px] border bg-gray-300 rounded-lg shadow-lg flex flex-col justify-between gap-3">
+                    isProfileModalOpen && <div className="absolute top-[10vh] p-4 w-[200px] border bg-gray-300 rounded-lg shadow-lg flex flex-col justify-between gap-3 z-20">
                         <div>
                             <h1 className="text-lg font-semibold text-gray-800">{userData.username}</h1>
                             <h3 className="text-sm text-gray-700">{userData.createdTime}</h3>
@@ -46,7 +46,7 @@ const Navbar = () => {
 
                         <button
                             className="mt-2 w-full px-3 py-1 bg-white text-red-500 border border-red-400 rounded hover:bg-red-100 transition"
-                            onClick={() => setIsProfileModalOpen(false)} // You'll implement this
+                            onClick={() => setIsProfileModalOpen(false)}
                         >
                             Close
                         </button>
