@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useChatStore } from '../store/useChatStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 const Sidebar = () => {
 
     const {userSelectedId, usersForSidebar} = useChatStore();
+
+    const {onlineUsers} = useAuthStore();
 
     const [users, setUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -47,8 +50,8 @@ const Sidebar = () => {
                         />
                         <div className="flex-1">
                             <p className="font-medium text-white">{user.username}</p>
-                            <p className={`text-sm ${user.online ? 'text-green-600' : 'text-gray-500'}`}>
-                                {user.online ? 'Online' : 'Offline'}
+                            <p className={`text-sm ${onlineUsers.includes(user._id) ? 'text-green-600' : 'text-gray-500'}`}>
+                                {onlineUsers.includes(user._id) ? 'Online' : 'Offline'}
                             </p>
                         </div>  
                     </div>

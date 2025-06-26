@@ -14,6 +14,8 @@ export const useAuthStore = create((set, get) => ({
     socket: null,
     isInitialized: false,
 
+    onlineUsers: [], // list for keys of "userSocketMap" [refer backend/lib/socket.js]
+
     isCheckingAuth: true,
 
     checkAuth: async() => {
@@ -89,7 +91,7 @@ export const useAuthStore = create((set, get) => ({
     connectSocket: () => {
         const {authUser, socket} = get();
 
-        // Enhanced check: don't connect if user is null or socket is already connected
+        // do not connect if user is null or socket is already connected
         if(!authUser || (socket && socket.connected)) {
             console.log("Socket connection skipped:", { 
                 hasUser: !!authUser, 
@@ -99,14 +101,21 @@ export const useAuthStore = create((set, get) => ({
         }
 
         const newSocket = io(BACKEND_URL, {
-            // Add these options to prevent multiple connections
             forceNew: false,
             reconnection: true,
             timeout: 5000,
+            query: {
+                userId: authUser
+            }
         });
         
         console.log("connectSocket done for user:", authUser);
         set({socket: newSocket});
+
+        newSocket.on("getOnlineUsers", (userIds) => {
+            set({ onlineUsers: userIds })
+        })
+
     },
 
     disconnectSocket: () => {
