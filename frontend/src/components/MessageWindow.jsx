@@ -5,17 +5,23 @@ import { useAuthStore } from '../store/useAuthStore';
 const MessageWindow = () => {
 
   const { userSelectedId, selectedUserData, sendMessage } = useChatStore();
-  const { authUser } = useAuthStore();
+  const { authUser, getUserDataById } = useAuthStore();
   const messagesEndRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [sendMessageValue, setSendMessageValue] = useState("");
+  const [receiverName, setReceiverName] = useState("");
 
   useEffect(() => {
     const fetchDetails = async () => {
       const result = await selectedUserData(userSelectedId);
       console.log("fetchDetails: ", result);
       setMessages(result);
+
+      const receiver = await getUserDataById(userSelectedId);
+      console.log("receiver ka data: ", receiver);
+      setReceiverName(receiver.username);
     }
+
     fetchDetails();
   }, [userSelectedId]);
 
@@ -79,9 +85,9 @@ const MessageWindow = () => {
   return (
     <div className='bg-slate-700 w-[65%] h-full flex flex-col'>
 
-      <div className="bg-black px-4 py-3 w-full">
+      <div className="flex justify-between bg-black px-4 py-3 w-full">
         <div className="flex items-center space-x-3">
-          <h1>You Are Talking With {}</h1>
+          <h1>You Are Talking With <strong>{receiverName}</strong></h1>
         </div>
       </div>
 

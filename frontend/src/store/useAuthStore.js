@@ -58,7 +58,7 @@ export const useAuthStore = create((set) => ({
         }
     },
 
-    getUserForProfile: async(id) => {
+    getUserDataById: async(id) => {
         try {
             const res = await axiosInstance.get(`user/${id}`);
             return res.data.user;

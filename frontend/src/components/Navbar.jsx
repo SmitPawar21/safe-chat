@@ -4,13 +4,13 @@ import { Cog, LogOut, MessageSquare, MessagesSquare, User } from 'lucide-react';
 
 const Navbar = () => {
 
-    const { authUser, logout, getUserForProfile } = useAuthStore();
+    const { authUser, logout, getUserDataById } = useAuthStore();
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [userData, setUserData] = useState({});
 
     const handleProfile = async () => {
         setIsProfileModalOpen(true);
-        const user = await getUserForProfile(authUser.id);
+        const user = await getUserDataById(authUser.id);
         console.log(user);
         setUserData({
             username: user.username,
