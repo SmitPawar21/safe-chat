@@ -25,7 +25,7 @@ export const getOneUser = async (req, res) => {
 
 export const getUsersForSidebar = async (req, res) => {
     try {   
-        const loggedInUserId = req.user._id;
+        const loggedInUserId = req.user.id;
 
         const users = await User.find({_id: {$ne: loggedInUserId} });
 
