@@ -4,18 +4,21 @@ import { useAuthStore } from '../store/useAuthStore';
 
 const MessageWindow = () => {
 
-  const { userSelectedId, selectedUserData, sendMessage } = useChatStore();
+  const { userSelectedId, selectedUserData, sendMessage, messages, realTimeMessage, offRealTimeMessage } = useChatStore();
   const { authUser, getUserDataById } = useAuthStore();
   const messagesEndRef = useRef(null);
-  const [messages, setMessages] = useState([]);
   const [sendMessageValue, setSendMessageValue] = useState("");
   const [receiverName, setReceiverName] = useState("");
 
   useEffect(() => {
     const fetchDetails = async () => {
-      const result = await selectedUserData(userSelectedId);
-      console.log("fetchDetails: ", result);
-      setMessages(result);
+      offRealTimeMessage();
+
+      await selectedUserData(userSelectedId);
+      console.log("fetchDetails: ", messages);
+
+      // Set up new listener
+      realTimeMessage();
 
       const receiver = await getUserDataById(userSelectedId);
       console.log("receiver ka data: ", receiver);
@@ -23,6 +26,9 @@ const MessageWindow = () => {
     }
 
     fetchDetails();
+
+    // Cleanup function
+    return () => offRealTimeMessage();
   }, [userSelectedId]);
 
   const formatTime = (timestamp) => {
@@ -63,7 +69,7 @@ const MessageWindow = () => {
     setSendMessageValue("");
 
     const updatedMessages = await selectedUserData(userSelectedId);
-    setMessages(updatedMessages);
+    useChatStore.setState({ messages: updatedMessages });
   }
 
   const scrollToBottom = () => {
@@ -78,7 +84,7 @@ const MessageWindow = () => {
     const timer = setTimeout(() => {
       scrollToBottom();
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [messages]);
 
@@ -95,7 +101,6 @@ const MessageWindow = () => {
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
         {messages.map((msg, index) => {
           var isOwnMessage = msg.senderId === authUser;
-          console.log("ownmessage hai kya re", isOwnMessage)
           const showDate = index === 0 ||
             formatDate(messages[index - 1].createdAt) !== formatDate(msg.createdAt);
 
@@ -126,7 +131,7 @@ const MessageWindow = () => {
             </div>
           );
         })}
-        
+
         <div ref={messagesEndRef} />
       </div>
 

@@ -1,4 +1,5 @@
 import Message from "../model/Message.js"
+import {getReceiverSocketId, io} from "../lib/socket.js";
 
 export const getAllMessages = async (req, res) => {
     try {
@@ -56,7 +57,11 @@ export const sendMessage = async (req, res) => {
 
         await newMessage.save();
 
-        // Real time functionality goes here : socket.io
+        // database me save hone ke baad socket functionality -
+        const receiverSocketId = getReceiverSocketId(userToChatId);
+        if(receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+        }
 
         return res.status(200).json({"message": "success", "message": newMessage});
 
