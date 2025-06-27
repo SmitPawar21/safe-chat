@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 import UserRouter from "./router/UserRouter.js";
 import AuthRouter from "./router/AuthRouter.js";
@@ -13,6 +14,7 @@ import {app, server} from "./lib/socket.js";
 dotenv.config();
 
 const PORT = process.env.PORT;
+const _dirname = path.resolve();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -32,6 +34,14 @@ app.get("/", (req, res) => {
     console.log("/");
     res.status(201).json({"message": "hello"});
 })
+
+if(process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+    app.get("*", (req, res) => {
+        res.sendFile(path.join(__dirname, "..frontend", "dist", "index.html"));
+    });
+}
 
 server.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);

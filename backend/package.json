@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
+    "safechat": "file:..",
     "socket.io": "^4.8.1"
   }
 }
