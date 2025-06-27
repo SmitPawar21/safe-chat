@@ -37,6 +37,8 @@ export const useChatStore = create((set, get) => ({
 
         const socket = useAuthStore.getState().socket;
 
+        socket.off("newMessage");
+
         socket.on("newMessage", (newMessage) => {
             set({messages: [...get().messages, newMessage]});
         })
@@ -45,6 +47,5 @@ export const useChatStore = create((set, get) => ({
     offRealTimeMessage: () => {
         const socket = useAuthStore.getState().socket;
         socket.off("newMessage");
-    }
-
+    },
 }))
