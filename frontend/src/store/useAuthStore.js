@@ -4,7 +4,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import {io} from "socket.io-client";
 import { useChatStore } from "./useChatStore";
 
-const BACKEND_URL = "http://localhost:3000"
+const BACKEND_URL = "https://safe-chat-xa32.onrender.com"
 
 export const useAuthStore = create((set, get) => ({
     authUser: null,
