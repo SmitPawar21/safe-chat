@@ -1,39 +1,54 @@
 import Message from "../model/Message.js"
 import {getReceiverSocketId, io} from "../lib/socket.js";
+import { decryptText, encryptText } from "../lib/encrypt.js";
+
+const safeDecrypt = (encryptedText) => {
+  try {
+    return decryptText(encryptedText);
+  } catch (err) {
+    return encryptedText; // fallback: return original plain text if decryption fails
+  }
+};
 
 export const getAllMessages = async (req, res) => {
-    try {
-        const msgs = await Message.find();
+  try {
+    const msgs = await Message.find();
 
-        return res.status(201).json({"message": "success", "messages": msgs});
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({"error": "INTERNAL SERVER ERROR"});
-    }
-}
+    const decryptedMsgs = msgs.map(msg => ({
+      ...msg.toObject(),
+      text: safeDecrypt(msg.text),
+    }));
+
+    return res.status(200).json({ "message": "success", "messages": decryptedMsgs });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ "error": "INTERNAL SERVER ERROR" });
+  }
+};
 
 export const getMessageForOne = async (req, res) => {
-    try {
-        const {id: userToChatId} = req.params; // destructuring
-        // this line can also be written as:
-        // const userToChatId = req.params.id;
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user.id;
 
-        const myId = req.user.id;
+    const messages = await Message.find({
+      $or: [
+        { senderId: myId, receiverId: userToChatId },
+        { senderId: userToChatId, receiverId: myId },
+      ]
+    });
 
-        const messages = await Message.find({
-            $or: [
-                {senderId: myId, receiverId: userToChatId},
-                {senderId: userToChatId, receiverId: myId},
-            ]
-        })
+    const decryptedMessages = messages.map(msg => ({
+      ...msg.toObject(),
+      text: safeDecrypt(msg.text),
+    }));
 
-        return res.status(200).json({"messages": messages});
-
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({"error": "INTERNAL SERVER ERROR"});
-    }
-}
+    return res.status(200).json({ "messages": decryptedMessages });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ "error": "INTERNAL SERVER ERROR" });
+  }
+};
 
 export const sendMessage = async (req, res) => {
     try {
@@ -45,22 +60,31 @@ export const sendMessage = async (req, res) => {
 
         let imageurl;
         if(image) {
-            // upload it on cloudinary
+            // upload it on aws
         }
+
+        const encryptedText = encryptText(text);
+
+        console.log(encryptedText);
 
         const newMessage = new Message({
             senderId: myId,
             receiverId: userToChatId,
-            text: text,
+            text: encryptedText,
             image: imageurl
         });
 
         await newMessage.save();
 
         // database me save hone ke baad socket functionality -
+
         const receiverSocketId = getReceiverSocketId(userToChatId);
         if(receiverSocketId) {
-            io.to(receiverSocketId).emit("newMessage", newMessage);
+            const decryptedMsg = decryptText(newMessage.text);
+            io.to(receiverSocketId).emit("newMessage",  {
+                ...newMessage.toObject(),
+                text: decryptedMsg, 
+            });
         }
 
         return res.status(200).json({"message": "success", "message": newMessage});

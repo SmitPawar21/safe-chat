@@ -23,8 +23,13 @@ app.use(cors({
     credentials: true,
 }));
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log("Database Connected"));
+if(process.env.NODE_ENV === "development") {
+    mongoose.connect(process.env.MONGODB_URI_2)
+    .then(() => console.log("Database Connected 2"));
+} else {
+    mongoose.connect(process.env.MONGODB_URI)
+        .then(() => console.log("Database Connected"));
+}
 
 app.use("/", AuthRouter);
 app.use("/", UserRouter);
