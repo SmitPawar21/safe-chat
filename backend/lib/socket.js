@@ -20,10 +20,8 @@ export const getReceiverSocketId = (userId) => {
 };
 
 io.on("connection", (socket) => {
-  console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
-  console.log("on connection userId: ", userId);
   if (userId) userSocketMap[userId] = socket.id;
 
   // Notify local clients about current online users
@@ -38,7 +36,6 @@ io.on("connection", (socket) => {
           status: "online",
           originServerId: process.env.SERVER_ID || "1",
         });
-        console.log(userId, " is online right now");
       }
     } catch (err) {
       console.warn("Failed to publish user-online to Kafka:", err);
@@ -46,7 +43,6 @@ io.on("connection", (socket) => {
   })();
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected", socket.id);
     delete userSocketMap[userId];
 
     io.emit("getOnlineUsers", Object.keys(userSocketMap));

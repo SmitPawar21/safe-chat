@@ -4,24 +4,28 @@ import { useAuthStore } from '../store/useAuthStore';
 
 const MessageWindow = () => {
 
-  const { userSelectedId, selectedUserData, sendMessage, messages, realTimeMessage, offRealTimeMessage } = useChatStore();
+  const { userSelectedId, selectedUserData, sendMessage, messages, realTimeMessage, offRealTimeMessage, groupSelectedId, getGroupDataById, realTimeMessageForGroup, offRealTimeMessageForGroup } = useChatStore();
   const { authUser, getUserDataById } = useAuthStore();
   const messagesEndRef = useRef(null);
   const [sendMessageValue, setSendMessageValue] = useState("");
   const [receiverName, setReceiverName] = useState("");
+  const [groupName, setGroupName] = useState("");
 
   useEffect(() => {
+    if (!userSelectedId) {
+      console.log("userSelectedId is null/undefined, skipping fetch");
+      return;
+    }
+
     const fetchDetails = async () => {
       offRealTimeMessage();
 
       await selectedUserData(userSelectedId);
-      console.log("fetchDetails: ", messages);
 
       // Set up new listener
       realTimeMessage();
 
       const receiver = await getUserDataById(userSelectedId);
-      console.log("receiver ka data: ", receiver);
       setReceiverName(receiver.username);
     }
 
@@ -30,6 +34,30 @@ const MessageWindow = () => {
     // Cleanup function
     return () => offRealTimeMessage();
   }, [userSelectedId]);
+
+  useEffect(() => {
+
+    if (!groupSelectedId) {
+      console.log("groupSelectedId is null/undefined, skipping fetch");
+      return;
+    }
+
+    console.log("trying to fetch in message window...");
+    const fetchDetails = async () => {
+      offRealTimeMessage();
+
+      const response = await getGroupDataById(groupSelectedId);
+      console.log("response in message controller: ", response);
+      // Set up new listener
+      realTimeMessageForGroup();
+      setGroupName(response.group.name);
+    }
+
+    fetchDetails();
+
+    // Cleanup function
+    return () => offRealTimeMessageForGroup();
+  }, [groupSelectedId]);
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -65,11 +93,25 @@ const MessageWindow = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    await sendMessage(userSelectedId, sendMessageValue, "");
-    setSendMessageValue("");
+    
+    const newMessage = {
+      id: Date.now(), // temporary unique ID
+      text: sendMessageValue,
+      senderId: authUser, // make sure this matches how you compare sender in your UI
+      createdAt: new Date().toISOString(),
+    };
 
-    const updatedMessages = await selectedUserData(userSelectedId);
-    useChatStore.setState({ messages: updatedMessages });
+    // Optimistically update messages locally (before backend response)
+    useChatStore.setState((state) => ({
+      messages: [...state.messages, newMessage],
+    }));
+
+    try {
+      await sendMessage(sendMessageValue, "", userSelectedId, groupSelectedId);
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    }
+    setSendMessageValue("");
   }
 
   const scrollToBottom = () => {
@@ -93,7 +135,16 @@ const MessageWindow = () => {
 
       <div className="flex justify-between bg-black px-4 py-3 w-full">
         <div className="flex items-center space-x-3">
-          <h1>You Are Talking With <strong>{receiverName}</strong></h1>
+          {
+            userSelectedId && <h1>
+              Personal Chat: <strong>{receiverName}</strong>
+            </h1>
+          }
+          {
+            groupSelectedId && <h1>
+              Group Name: <strong>{groupName}</strong>
+            </h1>
+          }
         </div>
       </div>
 

@@ -7,15 +7,35 @@ export const useChatStore = create((set, get) => ({
 
     userSelected: false,
 
+    groupSelected: false,
+
     usersForSidebar: async() => {
         const res = await axiosInstance.get("/users");
         console.log(res.data.users);
         return res.data.users;
     },
 
-    userSelectedId: "",
+    groupsForSidebar: async() => {
+        const res = await axiosInstance.get("/group/groups-for-user");
+        console.log(res.data.groups);
+        return res.data.groups;
+    },
+
+    userSelectedId: null,
+
+    groupSelectedId: null,
 
     messages: [],
+
+    getGroupDataById: async(id) => {
+        const res = await axiosInstance.get(`group/${id}`);
+        console.log(res.data.group);
+        console.log(res.data.messages);
+        
+        set({messages: res.data.messages});
+
+        return res.data;
+    },
 
     selectedUserData: async(id) => {
         const res = await axiosInstance.get(`/message/${id}`);
@@ -23,10 +43,12 @@ export const useChatStore = create((set, get) => ({
         return res.data.messages;
     },
 
-    sendMessage: async(id, text, image) => {
-        const res = await axiosInstance.post(`/message/send/${id}`, {
+    sendMessage: async(text, image, receiverId, groupId) => {
+        const res = await axiosInstance.post("/message/send", {
             text: text,
-            image: image
+            image: image,
+            receiverId: receiverId,
+            groupId: groupId
         });
         console.log(res);
     },
@@ -44,8 +66,26 @@ export const useChatStore = create((set, get) => ({
         })
     },
 
+    realTimeMessageForGroup: () => {
+        const {groupSelectedId} = get();
+        if((!groupSelectedId)) return;
+
+        const socket = useAuthStore.getState().socket;
+
+        socket.off("newGroupMessage");
+
+        socket.on("newGroupMessage", (newGroupMessage) => {
+            set({messages: [...get().messages, newGroupMessage]});
+        })
+    },
+
     offRealTimeMessage: () => {
         const socket = useAuthStore.getState().socket;
         socket.off("newMessage");
     },
+
+    offRealTimeMessageForGroup: () => {
+        const socket = useAuthStore.getState().socket;
+        socket.off("newGroupMessage");
+    }
 }))

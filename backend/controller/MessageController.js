@@ -53,14 +53,15 @@ export const getMessageForOne = async (req, res) => {
 export const getGroupMessages = async (req, res) => {
   try {
     const { groupId } = req.params;
-    const messages = await Message.find({ groupId });
+    const messages = await Message.find({groupId: groupId});
+    const group = await Group.findById(groupId);
 
     const decryptedMessages = messages.map((msg) => ({
       ...msg.toObject(),
       text: safeDecrypt(msg.text)
     }));
 
-    return res.status(200).json({ message: decryptedMessages });
+    return res.status(200).json({ group, messages: decryptedMessages });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err });

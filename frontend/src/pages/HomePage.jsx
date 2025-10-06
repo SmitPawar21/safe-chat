@@ -7,7 +7,7 @@ import { useChatStore } from '../store/useChatStore';
 
 const HomePage = () => {
 
-  const {userSelected} = useChatStore();
+  const {userSelected, groupSelected} = useChatStore();
   console.log("selected user = ", userSelected);
 
   return (
@@ -15,7 +15,7 @@ const HomePage = () => {
       <div className='h-[90vh] w-[95vw] bg-[#4B352A] flex'>
         <Sidebar />
         {
-          userSelected ? <MessageWindow /> : <NoChatOpen />
+          (userSelected || groupSelected) ? <MessageWindow /> : <NoChatOpen />
         }
       </div>
     </div>

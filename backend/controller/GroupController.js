@@ -110,3 +110,14 @@ export const leaveGroup = async (req, res) => {
     }
 }
 
+export const groupsForOneUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        console.log("user id in groups for one user ", userId);
+        const groups = await Group.find({ members: userId });
+    
+        return res.status(200).json({message: "success", groups});
+    } catch (err) {
+        return res.status(500).json(err);
+    }
+}

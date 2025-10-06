@@ -5,7 +5,7 @@ import {io} from "socket.io-client";
 import { useChatStore } from "./useChatStore";
 
 // const BACKEND_URL = "https://safe-chat-xa32.onrender.com"
-const BACKEND_URL = "http://localhost:3001";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const useAuthStore = create((set, get) => ({
     authUser: null,
