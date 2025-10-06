@@ -9,7 +9,12 @@ const messageSchema = new mongoose.Schema({
     receiverId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: false
+    },
+    groupId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Group",
+        required: false
     },
     text: {
         type: String,
@@ -18,5 +23,13 @@ const messageSchema = new mongoose.Schema({
         type: String,
     },
 }, {timestamps: true});
+
+messageSchema.pre('save', function (next) {
+    if(!this.receiverId && !this.groupId) {
+        return next(new Error("Message must have either receiver id or group id"));
+    }
+
+    next();
+})
 
 export default mongoose.model("Message", messageSchema);

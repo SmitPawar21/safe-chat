@@ -8,6 +8,7 @@ import path from "path";
 import UserRouter from "./router/UserRouter.js";
 import AuthRouter from "./router/AuthRouter.js";
 import MessageRouter from "./router/MessageRouter.js";
+import GroupRouter from "./router/GroupRouter.js";
 
 import { app, server } from "./lib/socket.js";
 import { producer } from "./lib/kafka.js";
@@ -15,7 +16,7 @@ import { startKafkaConsumer } from "./lib/kafkaConsumer.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
 
 app.use(express.json());
@@ -36,6 +37,7 @@ if (process.env.NODE_ENV === "development") {
 app.use("/", AuthRouter);
 app.use("/", UserRouter);
 app.use("/message", MessageRouter);
+app.use("/group", GroupRouter);
 
 app.get("/", (req, res) => {
   console.log("/");
