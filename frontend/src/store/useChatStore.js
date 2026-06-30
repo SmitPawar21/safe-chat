@@ -9,15 +9,21 @@ export const useChatStore = create((set, get) => ({
 
     groupSelected: false,
 
-    usersForSidebar: async() => {
+    users: [],
+
+    groups: [],
+
+    usersForSidebar: async () => {
         const res = await axiosInstance.get("/users");
         console.log(res.data.users);
+        set({ users: res.data.users });
         return res.data.users;
     },
 
-    groupsForSidebar: async() => {
+    groupsForSidebar: async () => {
         const res = await axiosInstance.get("/group/groups-for-user");
         console.log(res.data.groups);
+        set({ groups: res.data.groups });
         return res.data.groups;
     },
 
@@ -27,23 +33,23 @@ export const useChatStore = create((set, get) => ({
 
     messages: [],
 
-    getGroupDataById: async(id) => {
+    getGroupDataById: async (id) => {
         const res = await axiosInstance.get(`group/${id}`);
         console.log(res.data.group);
         console.log(res.data.messages);
-        
-        set({messages: res.data.messages});
+
+        set({ messages: res.data.messages });
 
         return res.data;
     },
 
-    selectedUserData: async(id) => {
+    selectedUserData: async (id) => {
         const res = await axiosInstance.get(`/message/${id}`);
-        set({messages: res.data.messages});
+        set({ messages: res.data.messages });
         return res.data.messages;
     },
 
-    sendMessage: async(text, image, receiverId, groupId) => {
+    sendMessage: async (text, image, receiverId, groupId) => {
         const res = await axiosInstance.post("/message/send", {
             text: text,
             image: image,
@@ -51,38 +57,56 @@ export const useChatStore = create((set, get) => ({
             groupId: groupId
         });
         console.log(res);
+
+        // Reorder locally for sender
+        if (receiverId) {
+            const { users } = get();
+            const updatedUsers = [...users];
+            const userIndex = updatedUsers.findIndex(u => u._id === receiverId);
+            if (userIndex !== -1) {
+                const [userToMove] = updatedUsers.splice(userIndex, 1);
+                updatedUsers.unshift(userToMove);
+                set({ users: updatedUsers });
+            }
+        }
     },
 
-    realTimeMessage: () => {
-        const {userSelectedId} = get();
-        if(!userSelectedId) return;
-
-        const socket = useAuthStore.getState().socket;
-
+    subscribeToMessages: (socket) => {
         socket.off("newMessage");
-
         socket.on("newMessage", (newMessage) => {
-            set({messages: [...get().messages, newMessage]});
-        })
+            const { users } = get();
+            const otherUserId = newMessage.senderId;
+            
+            // 1. Reorder sidebar users
+            const updatedUsers = [...users];
+            const userIndex = updatedUsers.findIndex(u => u._id === otherUserId);
+            if (userIndex !== -1) {
+                const [userToMove] = updatedUsers.splice(userIndex, 1);
+                updatedUsers.unshift(userToMove);
+                set({ users: updatedUsers });
+            }
+            
+            // 2. Append message if active chat
+            if (get().userSelectedId === otherUserId) {
+                set({ messages: [...get().messages, newMessage] });
+            }
+        });
     },
 
     realTimeMessageForGroup: () => {
-        const {groupSelectedId} = get();
-        if((!groupSelectedId)) return;
+        const { groupSelectedId } = get();
+        if ((!groupSelectedId)) return;
 
         const socket = useAuthStore.getState().socket;
 
         socket.off("newGroupMessage");
 
         socket.on("newGroupMessage", (newGroupMessage) => {
-            set({messages: [...get().messages, newGroupMessage]});
+            set({ messages: [...get().messages, newGroupMessage] });
         })
     },
 
-    offRealTimeMessage: () => {
-        const socket = useAuthStore.getState().socket;
-        socket.off("newMessage");
-    },
+
 
     offRealTimeMessageForGroup: () => {
         const socket = useAuthStore.getState().socket;

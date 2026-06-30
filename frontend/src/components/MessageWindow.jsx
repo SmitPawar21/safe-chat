@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/useAuthStore';
 
 const MessageWindow = () => {
 
-  const { userSelectedId, selectedUserData, sendMessage, messages, realTimeMessage, offRealTimeMessage, groupSelectedId, getGroupDataById, realTimeMessageForGroup, offRealTimeMessageForGroup } = useChatStore();
+  const { userSelectedId, selectedUserData, sendMessage, messages, groupSelectedId, getGroupDataById, realTimeMessageForGroup, offRealTimeMessageForGroup } = useChatStore();
   const { authUser, getUserDataById, onlineUsers } = useAuthStore();
   const messagesEndRef = useRef(null);
   const [sendMessageValue, setSendMessageValue] = useState("");
@@ -18,21 +18,13 @@ const MessageWindow = () => {
     }
 
     const fetchDetails = async () => {
-      offRealTimeMessage();
-
       await selectedUserData(userSelectedId);
-
-      // Set up new listener
-      realTimeMessage();
 
       const receiver = await getUserDataById(userSelectedId);
       setReceiverName(receiver.username);
     }
 
     fetchDetails();
-
-    // Cleanup function
-    return () => offRealTimeMessage();
   }, [userSelectedId]);
 
   useEffect(() => {
@@ -93,7 +85,7 @@ const MessageWindow = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     const newMessage = {
       id: Date.now(), // temporary unique ID
       text: sendMessageValue,
@@ -232,11 +224,11 @@ const MessageWindow = () => {
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(e)}
             />
           </div>
-          <button 
+          <button
             className={`flex items-center justify-center p-3.5 rounded-full transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900
-              ${sendMessageValue.trim() 
-                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 hover:scale-105 hover:shadow-indigo-500/40 active:scale-95' 
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'}`} 
+              ${sendMessageValue.trim()
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 hover:scale-105 hover:shadow-indigo-500/40 active:scale-95'
+                : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'}`}
             onClick={sendMessageValue.trim() ? handleSendMessage : undefined}
             disabled={!sendMessageValue.trim()}
           >

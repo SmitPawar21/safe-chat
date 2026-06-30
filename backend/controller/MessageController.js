@@ -53,7 +53,7 @@ export const getMessageForOne = async (req, res) => {
 export const getGroupMessages = async (req, res) => {
   try {
     const { groupId } = req.params;
-    const messages = await Message.find({groupId: groupId});
+    const messages = await Message.find({ groupId: groupId });
     const group = await Group.findById(groupId);
 
     const decryptedMessages = messages.map((msg) => ({

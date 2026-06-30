@@ -76,9 +76,6 @@ export const useAuthStore = create((set, get) => ({
             toast.success("Logged Out Successfully");
             console.log(res);
             get().disconnectSocket();
-            
-            const {offRealTimeMessage} = useChatStore.getState();
-            offRealTimeMessage();
         } catch (err) {
             toast.error(err.response.data.message);
         }
@@ -120,6 +117,7 @@ export const useAuthStore = create((set, get) => ({
             set({ onlineUsers: userIds })
         })
 
+        useChatStore.getState().subscribeToMessages(newSocket);
     },
 
     disconnectSocket: () => {

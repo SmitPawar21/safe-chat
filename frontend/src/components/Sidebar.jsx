@@ -5,12 +5,10 @@ import {CircleUser, GroupIcon} from 'lucide-react';
 
 const Sidebar = () => {
 
-    const {userSelectedId, usersForSidebar, groupsForSidebar, groupSelectedId} = useChatStore();
+    const {userSelectedId, users, groups, usersForSidebar, groupsForSidebar, groupSelectedId} = useChatStore();
 
     const {onlineUsers} = useAuthStore();
 
-    const [users, setUsers] = useState([]);
-    const [groups, setGroups] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredUsers = users.filter(user =>
@@ -19,12 +17,8 @@ const Sidebar = () => {
 
     useEffect(() => {
         const fetchUsers = async() => {
-            const usersData = await usersForSidebar();
-            const groupsData = await groupsForSidebar();
-            console.log("sidebar me users = ", usersData);
-            console.log("sidebar me groups = ", groupsData);
-            setUsers(usersData);
-            setGroups(groupsData);
+            await usersForSidebar();
+            await groupsForSidebar();
         }
         fetchUsers();
     }, [usersForSidebar]);
